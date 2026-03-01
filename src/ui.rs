@@ -8,8 +8,6 @@ use ratatui::{
     DefaultTerminal, Frame, style::{Style, Stylize}, text::{Span, Line}, widgets::{Block, BorderType, List, ListState}
 };
 
-use ratatui_toaster::T
-
 fn match_file_type<P: AsRef<Path>>(file: &P) -> Span<'_> {
     let string = Span::raw(file.as_ref().file_name().unwrap_or_else(|| OsStr::new("<no filename>")).to_string_lossy());
     
