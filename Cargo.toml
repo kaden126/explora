@@ -3,7 +3,6 @@ name = "explora"
 version = "0.1.0"
 edition = "2024"
 license = "MIT"
-license-file = "LICENSE"
 repository = "https://github.com/kaden126/explora"
 description = "A small, friendly, terminal file explorer written in rust."
 
