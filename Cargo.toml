@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 license = "MIT"
 license-file = "LICENSE"
-repository = "https://github.com/kaden126/explora/tree/master"
+repository = "https://github.com/kaden126/explora"
 description = "A small, friendly, terminal file explorer written in rust."
 
 [dependencies]
@@ -12,3 +12,8 @@ ratatui = "0.30.0"
 crossterm = "0.29.0"
 anyhow = "1.0.102"
 infer = "0.19.0"
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
