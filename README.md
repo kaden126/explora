@@ -29,6 +29,6 @@ cargo install explora
 ## Roadmap
 [ ] Command line options: opening `explora` in other directories, ignoring permission errors.
 
-[ ] Customizable file type colors through `TOML` themes.
+[X] Customizable file type colors through `TOML` themes.
 
 [ ] File / directory size and permission info.
