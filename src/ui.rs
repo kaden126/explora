@@ -2,49 +2,31 @@ use std::{
     ffi::OsStr, path::{Path, PathBuf}, time::Duration
 };
 use infer::MatcherType as FileType;
-use anyhow::Context;
+use anyhow::{Context, Result};
 use crossterm::event::{Event, KeyCode, poll, read};
 use ratatui::{
     DefaultTerminal, Frame, style::{Style, Stylize}, text::{Span, Line}, widgets::{Block, BorderType, List, ListState}
 };
-
-fn match_file_type<P: AsRef<Path>>(file: &P) -> Span<'_> {
-    let string = Span::raw(file.as_ref().file_name().unwrap_or_else(|| OsStr::new("<no filename>")).to_string_lossy());
-    
-    if let Ok(Some(kind)) = infer::get_from_path(file) {        
-        return match kind.matcher_type() {
-            FileType::App => string.light_red(),
-            FileType::Audio => string.light_yellow(),
-            FileType::Image => string.light_green(),
-            FileType::Archive => string.light_cyan(),
-            FileType::Doc => string.light_blue(),
-            FileType::Text => string.light_magenta(),
-            FileType::Video => string.red().underlined(),
-            FileType::Book => string.yellow().underlined(),
-            FileType::Font => string.green().underlined(),
-            FileType::Custom => string.magenta().underlined()
-        };
-    }
-    
-   string.magenta().underlined()
-}
+use crate::themes::Theme;
 
 pub struct Explorer {
     current: PathBuf,
     children: Vec<PathBuf>,
     exit: bool,
-    needs_clear: bool
+    needs_clear: bool,
+    theme: Theme,
 }
 
 impl Explorer {
-    
-    pub fn new(current: PathBuf) -> Self {
-        Self {
+    pub fn new(current: PathBuf) -> Result<Self> {
+        Ok(Self {
             current,
             children: vec![],
             exit: false,
             needs_clear: false,
-        }
+            theme: Theme::new()
+                .with_context(|| "Failed to initialize themes.")?
+        })
     }
     
     pub fn run(&mut self, terminal: &mut DefaultTerminal) -> anyhow::Result<()> {
@@ -76,16 +58,16 @@ impl Explorer {
                 let string = Span::raw(child.file_name().unwrap_or_else(|| OsStr::new("<no filename>")).to_string_lossy());
                 
                 if child.is_dir() {
-                    string.blue().underlined()
+                    string.style(self.theme.directory)
                 }
                 else if child.is_symlink() {
-                    string.cyan().underlined()
+                    string.style(self.theme.symlink)
                 }
                 else if child.is_file() {
-                    match_file_type(child)
+                    self.match_file_type(child)
                 }
                 else {
-                    string.magenta().underlined()
+                    string.style(self.theme.other)
                 }
             });
         
@@ -113,29 +95,29 @@ impl Explorer {
                             Span::from(" "),
                             Span::from(self.current.to_string_lossy()).blue().underlined(),
                             Span::from(" "),
-                            Span::from("bin").light_red(),
+                            Span::from("bin").style(self.theme.app),
                             Span::from(" "),
-                            Span::from("audio").light_yellow(),
+                            Span::from("audio").style(self.theme.audio),
                             Span::from(" "),
-                            Span::from("img").light_green(),
+                            Span::from("img").style(self.theme.image),
                             Span::from(" "),
-                            Span::from("arch").light_cyan(),
+                            Span::from("arch").style(self.theme.archive),
                             Span::from(" "),
-                            Span::from("doc").light_blue(),
+                            Span::from("doc").style(self.theme.doc),
                             Span::from(" "),
-                            Span::from("txt").light_magenta(),
+                            Span::from("txt").style(self.theme.text),
                             Span::from(" "),
-                            Span::from("vid").red().underlined(),
+                            Span::from("vid").style(self.theme.video),
                             Span::from(" "),
-                            Span::from("book").yellow().underlined(),
+                            Span::from("book").style(self.theme.book),
                             Span::from(" "),
-                            Span::from("font").green().underlined(),
+                            Span::from("font").style(self.theme.font),
                             Span::from(" "),
-                            Span::from("link").cyan().underlined(),
+                            Span::from("link").style(self.theme.symlink),
                             Span::from(" "),
-                            Span::from("dir").blue().underlined(),
+                            Span::from("dir").style(self.theme.directory),
                             Span::from(" "),
-                            Span::from("other").magenta().underlined(),
+                            Span::from("other").style(self.theme.other),
                             Span::from(" ")
                         ])
                     )
@@ -225,5 +207,27 @@ impl Explorer {
             .collect();
         
         Ok(())
+    }
+    
+    fn match_file_type<'a, P: AsRef<Path>>(&'a self, file: &'a P) -> Span<'a> {
+        let string = Span::raw(file.as_ref().file_name().unwrap_or_else(|| OsStr::new("<no filename>")).to_string_lossy());
+        let theme = &self.theme;
+        
+        if let Ok(Some(kind)) = infer::get_from_path(file) {        
+            return match kind.matcher_type() {
+                FileType::App => string.style(theme.app),
+                FileType::Audio => string.style(theme.audio),
+                FileType::Image => string.style(theme.image),
+                FileType::Archive => string.style(theme.archive),
+                FileType::Doc => string.style(theme.doc),
+                FileType::Text => string.style(theme.text),
+                FileType::Video => string.style(theme.video),
+                FileType::Book => string.style(theme.book),
+                FileType::Font => string.style(theme.font),
+                FileType::Custom => string.style(theme.other)
+            };
+        }
+        
+       string.style(theme.other)
     }
 }
