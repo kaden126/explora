@@ -1,16 +1,18 @@
 [package]
 name = "explora"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 license = "MIT"
 repository = "https://github.com/kaden126/explora"
 description = "A small, friendly, terminal file explorer written in rust."
 
 [dependencies]
-ratatui = "0.30.0"
+ratatui = { version = "0.30.0", features = ["serde"] }
 crossterm = "0.29.0"
 anyhow = "1.0.102"
 infer = "0.19.0"
+confy = "2.0.0"
+serde = "1.0.228"
 
 # The profile that 'dist' will build with
 [profile.dist]
