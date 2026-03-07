@@ -7,9 +7,10 @@ fn main() -> anyhow::Result<()> {
         .with_context(|| "Current working directory is invalid or has insufficient permisions.")?
         .to_path_buf();
     
-    ratatui::run(|terminal| -> anyhow::Result<()> {
-        let mut explorer = Explorer::new(cwd);
-        
+    let mut explorer = Explorer::new(cwd)
+        .with_context(|| "Failed to initialize application state.")?;
+    
+    ratatui::run(|terminal| -> anyhow::Result<()> {        
         explorer.run(terminal)
             .with_context(|| "Explorer loop failed.")?;
         Ok(())
